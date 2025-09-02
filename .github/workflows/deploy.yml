@@ -1,0 +1,89 @@
+name: CI to GHCR & Deploy
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  packages: write   # needed to push to GHCR
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image name
+        id: meta
+        run: |
+          IMAGE="ghcr.io/${{ github.repository }}"
+          echo "image=${IMAGE,,}" >> "$GITHUB_OUTPUT"   # force lowercase for GHCR
+
+      - name: Build & Push (latest + SHA tag)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image }}:latest
+            ${{ steps.meta.outputs.image }}:sha-${{ github.sha }}
+
+  deploy:
+    name: Deploy on server (no compose)
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: SSH into server and deploy
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script_stop: true
+          # If your GHCR image is PRIVATE, pass these envs and login in the script below:
+          envs: GHCR_USER,GHCR_PAT
+          script: |
+            set -e
+            IMAGE="ghcr.io/${{ github.repository }}"
+            IMAGE=$(echo "$IMAGE" | tr '[:upper:]' '[:lower:]')  # lowercase
+
+            # If image is PRIVATE, login (no-op if public)
+            if [ -n "${GHCR_PAT:-}" ] && [ -n "${GHCR_USER:-}" ]; then
+              echo "$GHCR_PAT" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            fi
+
+            # Create an env file once (edit values as needed)
+            sudo mkdir -p /etc/my-node-app
+            if [ ! -f /etc/my-node-app/app.env ]; then
+              echo "PORT=3000" | sudo tee /etc/my-node-app/app.env >/dev/null
+              echo "NODE_ENV=production" | sudo tee -a /etc/my-node-app/app.env >/dev/null
+            fi
+
+            # Pull the latest image
+            docker pull "$IMAGE:latest"
+
+            # Stop & remove old container if it exists
+            if docker ps -a --format '{{.Names}}' | grep -Eq '^my-node-app$'; then
+              docker stop my-node-app || true
+              docker rm my-node-app || true
+            fi
+
+            # Run new container (map port 80 -> 3000 inside)
+            docker run -d \
+              --name my-node-app \
+              --env-file /etc/my-node-app/app.env \
+              -p 80:3000 \
+              --restart unless-stopped \
+              "$IMAGE:latest"
+
+            # Optional: clean old dangling images
+            docker image prune -f
