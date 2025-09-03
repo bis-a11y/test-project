@@ -26,12 +26,12 @@ jobs:
             docker pull $IMAGE:latest
 
             # Stop and remove old container if running
-            docker stop my-node-app || true
-            docker rm my-node-app || true
+            docker stop my-app-bishara|| true
+            docker rm my-app-bishara|| true
 
             # Run new container
             docker run -d \
-              --name my-node-app \
+              --name my-app-bishara \
               -p 8080:3000 \
               --restart unless-stopped \
               $IMAGE:latest
