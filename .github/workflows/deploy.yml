@@ -20,14 +20,21 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            docker pull crazy_napier/app:latest
+            IMAGE="crazy_napier/app"
+
+            # Pull the latest image
+            docker pull $IMAGE:latest
+
+            # Stop and remove old container if running
             docker stop my-node-app || true
             docker rm my-node-app || true
-            docker run -d --name my-node-app -p 8080:3000 docker pull  crazy_napier/app:latest
 
+            # Run new container
+            docker run -d \
+              --name my-node-app \
               -p 8080:3000 \
               --restart unless-stopped \
-              "$IMAGE:latest"
+              $IMAGE:latest
 
-            # Optional: clean old dangling images
+            # Optional: clean up unused images
             docker image prune -f
