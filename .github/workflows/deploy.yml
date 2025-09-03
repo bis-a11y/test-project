@@ -20,12 +20,12 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            docker pull your-dockerhub-username/my-node-app:latest
+            docker pull crazy_napier/app:latest
             docker stop my-node-app || true
             docker rm my-node-app || true
-            docker run -d --name my-node-app -p 80:3000 your-dockerhub-username/my-node-app:latest
+            docker run -d --name my-node-app -p 8080:3000 docker pull  crazy_napier/app:latest
 
-              -p 80:3000 \
+              -p 8080:3000 \
               --restart unless-stopped \
               "$IMAGE:latest"
 
