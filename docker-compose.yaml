@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  infobring-backend:
+    image: ghcr.io/bis-a11y/app:latest 
+    container_name: New-bishara
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+     
