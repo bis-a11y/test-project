@@ -1,0 +1,65 @@
+name: Deploy 
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.bishara }}
+
+      - name: Build Docker image   
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: /root/appbishara/Dockerfile
+          push: true  
+          tags: ghcr.io/bis-a11y/tes-project/dev
+          build-args: |
+         
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+  
+      - name: Deploy to PRODUCTION environment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER}}
+          key: ${{ secrets.SERVER_SSH_KEY}}
+          script: |
+            echo '${{ secrets.bishara }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker compose down infobring-backend || true
+            docker image prune -a -f  
+            docker container prune -a -f
+            docker system prune -a -f
+            docker compose up -d infobring-backend || true
