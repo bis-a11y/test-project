@@ -3,12 +3,12 @@ name: Deploy to infobring-backend staging
 on:
   push:
     branches:
-      - staging
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: staging
+    environment: main
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -21,7 +21,7 @@ jobs:
         with:
           context: .
           load: true  # This makes the image available locally instead of pushing
-          tags: infobring-backend:staging
+          tags: infobring-backend:main
           build-args: |
           
       - name: Save Docker image to tar file
@@ -43,5 +43,4 @@ jobs:
           name: docker-image
           
       
-            # Clean up the tar file
-            rm -f image.tar
+        
