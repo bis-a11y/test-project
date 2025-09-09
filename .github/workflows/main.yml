@@ -40,7 +40,7 @@ jobs:
           context: .
           file: ./Dockerfile 
           push: true  
-          tags: ghcr.io/bis-a11y/test-project
+          tags: ghcr.io/bis-a11y/test-project:NEW
           build-args: |
          
   deploy:
