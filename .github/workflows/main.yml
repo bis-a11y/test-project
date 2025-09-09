@@ -31,7 +31,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ github.repository_owner  }}
           password: ${{ secrets.BISHARA_SECREATE }}
 
       - name: Build Docker image   
@@ -40,7 +40,7 @@ jobs:
           context: .
           file: ./Dockerfile 
           push: true  
-          tags: ghcr.io/bis-a11y/test-project:NEW
+          tags: ghcr.io/bis-a11y/test-project:latest
           build-args: |
          
   deploy:
