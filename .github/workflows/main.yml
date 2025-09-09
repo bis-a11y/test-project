@@ -40,7 +40,7 @@ jobs:
           context: .
           file: /root/appbishara/Dockerfile
           push: true  
-          tags: ghcr.io/bis-a11y/tes-project/dev
+          tags: ghcr.io/bis-a11y/test-project/dev
           build-args: |
          
   deploy:
@@ -57,7 +57,7 @@ jobs:
           username: ${{ secrets.SERVER_USER}}
           key: ${{ secrets.SERVER_SSH_KEY}}
           script: |
-            echo '${{ secrets.bishara }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo '${{ secrets.BISHARA_SECREATE  }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose down infobring-backend || true
             docker image prune -a -f  
             docker container prune -a -f
