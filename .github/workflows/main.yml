@@ -32,7 +32,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.bishara }}
+          password: ${{ secrets.BISHARA_SECREATE }}
 
       - name: Build Docker image   
         uses: docker/build-push-action@v2
