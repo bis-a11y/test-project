@@ -31,7 +31,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner  }}
+          username: ${{ github.actor  }}
           password: ${{ secrets.BISHARA_SECREATE }}
 
       - name: Build Docker image   
@@ -57,7 +57,7 @@ jobs:
           username: ${{ secrets.SERVER_USER}}
           key: ${{ secrets.SERVER_SSH_KEY}}
           script: |
-            echo '${{ secrets.BISHARA_SECREATE  }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+            echo '${{ secrets.BISHARA_SECREATE  }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose down infobring-backend || true
             docker image prune -a -f  
             docker container prune -a -f
