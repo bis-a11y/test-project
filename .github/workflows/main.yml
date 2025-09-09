@@ -38,7 +38,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: /root/appbishara/Dockerfile
+          file: ./Dockerfile 
           push: true  
           tags: ghcr.io/bis-a11y/test-project/dev
           build-args: |
