@@ -40,7 +40,7 @@ jobs:
           context: .
           file: ./Dockerfile 
           push: true  
-          tags: ghcr.io/bis-a11y/test-project:latest
+          tags: ghcr.io/bis-a11y/hello_repo_web:latest
           build-args: |
          
   deploy:
